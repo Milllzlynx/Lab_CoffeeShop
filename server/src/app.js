@@ -1,24 +1,38 @@
-// app.js — Node.js Coffee API
-let express = require('express')
-let bodyParser = require('body-parser')
+const express = require("express")
+const cors = require("cors")
+
+const { sequelize } = require("./models")
+const config = require("./config/config")
+
 const app = express()
- 
-app.use(bodyParser.json())
-app.use(bodyParser.urlencoded({ extended: true }))
- 
-require('./routes')(app)
 
-app.get('/status', (req, res) => {
-    res.send('Hello MyCoffee!')
-});
+app.use(express.json())
+app.use(express.urlencoded({ extended: true }))
+app.use(cors())
 
-app.get('/hello/:person', function (req, res) {
-    console.log('hello - ' + req.params.person)
-    res.send('say hello with ' + req.params.person)
-});
+// เรียกใช้ Routes ที่เราแยกไฟล์ไว้
+require("./routes")(app)
 
-// START SERVER
-let port = 8081
-app.listen(port, function () {
-  console.log('server running on ' + port)
+// health check
+app.get("/status", (req, res) => {
+  res.send("Hello CoffeeShop API!")
 })
+
+app.get("/hello/:name", (req, res) => {
+  console.log("hello - " + req.params.name)
+  res.send("say hello with " + req.params.name)
+})
+
+// Sync DB แล้วค่อยเปิด server
+sequelize
+  .sync({ force: false })
+  .then(() => {
+    app.listen(config.port, () => {
+      console.log("Server running on port " + config.port)
+    })
+  })
+  .catch((err) => {
+    console.error("DB sync failed:", err)
+  })
+
+module.exports = app

@@ -1,99 +1,74 @@
-let drinks = [
-  {
-    id: 1,
-    name: "Espresso",
-    type: "Hot",
-    origin: "Italy",
-    price: 65,
-    description: "กาแฟช็อตเข้มข้น รสชาติจัดเต็ม เหมาะกับคนชอบคาเฟอีนสูง"
-  },
-  {
-    id: 2,
-    name: "Americano",
-    type: "Hot",
-    origin: "Brazil",
-    price: 70,
-    description: "เอสเปรสโซผสมน้ำร้อน รสนุ่มขึ้น ดื่มง่าย"
-  },
-  {
-    id: 3,
-    name: "Latte",
-    type: "Hot",
-    origin: "Colombia",
-    price: 85,
-    description: "เอสเปรสโซผสมนมร้อน หอมมัน นุ่มละมุน"
-  }
-]
+// server/src/controllers/DrinkController.js
+const { Drink } = require("../models")
 
 module.exports = {
-
   // GET /drinks
-  index(req, res) {
-    res.json({
-      message: "เรียกข้อมูลเครื่องดื่มสำเร็จ",
-      data: drinks
-    })
+  async index(req, res) {
+    try {
+      const drinks = await Drink.findAll({ order: [["id", "ASC"]] })
+      res.json({ message: "เรียกข้อมูลเครื่องดื่มสำเร็จ", data: drinks })
+    } catch (err) {
+      res.status(500).json({ message: "เกิดข้อผิดพลาด", error: err.message })
+    }
   },
 
   // GET /drink/:id
-  show(req, res) {
-    const id = parseInt(req.params.id)
-    const drink = drinks.find(d => d.id === id)
+  async show(req, res) {
+    try {
+      const id = parseInt(req.params.id, 10)
+      const drink = await Drink.findByPk(id)
 
-    if (!drink) {
-      return res.status(404).json({ message: "ไม่พบเมนูนี้" })
+      if (!drink) return res.status(404).json({ message: "ไม่พบเมนูนี้" })
+      res.json({ message: "เรียกดูเมนูสำเร็จ", data: drink })
+    } catch (err) {
+      res.status(500).json({ message: "เกิดข้อผิดพลาด", error: err.message })
     }
-
-    res.json({
-      message: "เรียกดูเมนูสำเร็จ",
-      data: drink
-    })
   },
 
   // POST /drink
-  create(req, res) {
-    const newDrink = req.body
-    newDrink.id = drinks.length > 0 ? drinks[drinks.length - 1].id + 1 : 1
+  async create(req, res) {
+    try {
+      // ✅ ถ้าส่งมาเป็นหลายรายการ (Array)
+      if (Array.isArray(req.body)) {
+        const created = await Drink.bulkCreate(req.body, { validate: true })
+        return res.json({ message: "เพิ่มเมนูหลายรายการสำเร็จ", data: created })
+      }
 
-    drinks.push(newDrink)
-
-    res.json({
-      message: "เพิ่มเมนูสำเร็จ",
-      data: newDrink
-    })
+      // ✅ ถ้าส่งมาเป็นรายการเดียว (Object)
+      const created = await Drink.create(req.body)
+      return res.json({ message: "เพิ่มเมนูสำเร็จ", data: created })
+    } catch (err) {
+      return res.status(400).json({ message: "เพิ่มเมนูไม่สำเร็จ", error: err.message })
+    }
   },
 
   // PUT /drink/:id
-  update(req, res) {
-    const id = parseInt(req.params.id)
-    const index = drinks.findIndex(d => d.id === id)
+  async update(req, res) {
+    try {
+      const id = parseInt(req.params.id, 10)
+      const drink = await Drink.findByPk(id)
 
-    if (index === -1) {
-      return res.status(404).json({ message: "ไม่พบเมนูนี้" })
+      if (!drink) return res.status(404).json({ message: "ไม่พบเมนูนี้" })
+
+      await drink.update(req.body)
+      res.json({ message: "แก้ไขเมนูสำเร็จ", data: drink })
+    } catch (err) {
+      res.status(400).json({ message: "แก้ไขไม่สำเร็จ", error: err.message })
     }
-
-    drinks[index] = { ...drinks[index], ...req.body }
-
-    res.json({
-      message: "แก้ไขเมนูสำเร็จ",
-      data: drinks[index]
-    })
   },
 
   // DELETE /drink/:id
-  delete(req, res) {
-    const id = parseInt(req.params.id)
-    const index = drinks.findIndex(d => d.id === id)
+  async delete(req, res) {
+    try {
+      const id = parseInt(req.params.id, 10)
+      const drink = await Drink.findByPk(id)
 
-    if (index === -1) {
-      return res.status(404).json({ message: "ไม่พบเมนูนี้" })
+      if (!drink) return res.status(404).json({ message: "ไม่พบเมนูนี้" })
+
+      await drink.destroy()
+      res.json({ message: "ลบเมนูสำเร็จ", data: drink })
+    } catch (err) {
+      res.status(500).json({ message: "ลบไม่สำเร็จ", error: err.message })
     }
-
-    const deleted = drinks.splice(index, 1)
-
-    res.json({
-      message: "ลบเมนูสำเร็จ",
-      data: deleted[0]
-    })
   }
 }
