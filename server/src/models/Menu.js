@@ -1,19 +1,18 @@
-// server/src/models/Drink.js
+// server/src/models/Menu.js
 module.exports = (sequelize, DataTypes) => {
-  const Drink = sequelize.define(
-    "Drink",
+  const Menu = sequelize.define(
+    "Menu",
     {
       name: { type: DataTypes.STRING(100), allowNull: false },
-      type: { type: DataTypes.STRING(50), allowNull: false }, // Hot / Cold
+      type: { type: DataTypes.STRING(50), allowNull: false },
       origin: { type: DataTypes.STRING(100), allowNull: true },
       price: { type: DataTypes.INTEGER, allowNull: false },
       description: { type: DataTypes.TEXT, allowNull: true }
     },
     {
-      tableName: "drinks",
-      timestamps: true // createdAt / updatedAt
+      tableName: "menus", // ✅ เปลี่ยนเป็น menus
+      timestamps: true
     }
   )
-
-  return Drink
+  return Menu
 }

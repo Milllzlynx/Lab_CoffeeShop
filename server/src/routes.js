@@ -1,9 +1,9 @@
-const DrinkController = require('./controllers/DrinkController')
+const MenuController = require('./controllers/MenuController')
 
 module.exports = (app) => {
-    app.get('/drinks', DrinkController.index)
-    app.get('/drink/:id', DrinkController.show)
-    app.post('/drink', DrinkController.create)
-    app.put('/drink/:id', DrinkController.update)
-    app.delete('/drink/:id', DrinkController.delete)
+    app.get('/menus', MenuController.index)
+    app.get('/menu/:id', MenuController.show)
+    app.post('/menu', MenuController.create)
+    app.put('/menu/:id', MenuController.update)
+    app.delete('/menu/:id', MenuController.delete)
 }
